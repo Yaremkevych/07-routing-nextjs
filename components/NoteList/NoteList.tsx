@@ -6,6 +6,7 @@ import { deleteNote } from "@/lib/api";
 import { type Note } from "@/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState } from "react";
 
 interface NoteListProps {
     noteList: Note[];
@@ -13,13 +14,18 @@ interface NoteListProps {
 
 export default function NoteList({ noteList }: NoteListProps) {
     const queryClient = useQueryClient();
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    const { mutate, isPending } = useMutation({
+    const { mutate } = useMutation({
         mutationFn: (id: string) => deleteNote(id),
+        onMutate: (id: string) => {
+            setDeletingId(id);
+        },
         onSuccess: async () => {
-            // важливо: у тебе ключі типу ["notes", page, word]
-            // тому інвалідимо ВСІ запити, що починаються з "notes"
             await queryClient.invalidateQueries({ queryKey: ["notes"] });
+        },
+        onSettled: () => {
+            setDeletingId(null);
         },
     });
 
@@ -41,9 +47,9 @@ export default function NoteList({ noteList }: NoteListProps) {
                             type="button"
                             onClick={() => mutate(note.id)}
                             className={css.button}
-                            disabled={isPending}
+                            disabled={deletingId === note.id}
                         >
-                            Delete
+                            {deletingId === note.id ? "Deleting..." : "Delete"}
                         </button>
                     </div>
                 </li>
