@@ -31,10 +31,15 @@ export default function Modal({ onClose, children }: ModalProps) {
             aria-modal="true"
             onClick={onClose}
         >
-            <div
-                className={css.modal}
-                onClick={(event) => event.stopPropagation()}
-            >
+            <div className={css.modal} onClick={(e) => e.stopPropagation()}>
+                <button
+                    type="button"
+                    className={css.closeBtn}
+                    onClick={onClose}
+                    aria-label="Close modal"
+                >
+                    ✕
+                </button>
                 {children}
             </div>
         </div>,

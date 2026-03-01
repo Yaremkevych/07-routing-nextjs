@@ -21,7 +21,6 @@ export default function NotePreviewClient({ id }: NotePreviewClientProps) {
     } = useQuery({
         queryKey: ["note", id],
         queryFn: () => fetchNoteById(id),
-        // Додаємо це налаштування сюди, як і в NoteDetailsClient
         refetchOnMount: false,
     });
 
@@ -38,14 +37,10 @@ export default function NotePreviewClient({ id }: NotePreviewClientProps) {
                     <div className={css.item}>
                         <div className={css.header}>
                             <h2 className={css.title}>{note.title}</h2>
-                            <button
-                                className={css.backBtn}
-                                onClick={handleClose}
-                            >
-                                Close
-                            </button>
                         </div>
+
                         <div className={css.content}>{note.content}</div>
+
                         <div className={css.footer}>
                             <div className={css.tag}>{note.tag}</div>
                             <div className={css.date}>
