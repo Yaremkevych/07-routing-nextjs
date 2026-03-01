@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useDebounce } from "use-debounce";
+
 import { fetchNotes, type FetchNotesResponse } from "@/lib/api";
 import NoteList from "@/components/NoteList/NoteList";
 import Pagination from "@/components/Pagination/Pagination";
@@ -31,27 +33,33 @@ interface NotesClientProps {
 
 export default function NotesClient({ initialTag }: NotesClientProps) {
     const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("");
+
+    // 1) те, що змінюється на кожну клавішу
+    const [searchInput, setSearchInput] = useState("");
+
+    // 2) те, що реально використовуємо в запиті (debounced)
+    const [debouncedSearch] = useDebounce(searchInput, 500);
+
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const activeTag: NoteTag | "" = isNoteTag(initialTag) ? initialTag : "";
 
     const { data, isLoading, isError, isFetching } =
         useQuery<FetchNotesResponse>({
-            queryKey: ["notes", activeTag, page, search],
+            queryKey: ["notes", activeTag, page, debouncedSearch],
             queryFn: () =>
                 fetchNotes({
                     tag: activeTag,
                     page,
                     perPage,
-                    search,
+                    search: debouncedSearch,
                 }),
             placeholderData: (prev) => prev,
             staleTime: 60_000,
         });
 
     const handleSearch = (value: string) => {
-        setSearch(value);
+        setSearchInput(value);
         setPage(1);
     };
 
@@ -90,7 +98,7 @@ export default function NotesClient({ initialTag }: NotesClientProps) {
 
             {!isLoading && !isError && data && data.notes.length === 0 && (
                 <p>
-                    {search
+                    {debouncedSearch
                         ? "No notes match your search"
                         : "No notes in this category"}
                 </p>
